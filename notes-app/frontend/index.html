@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Paperz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<script>
+  (function () {
+    const saved = localStorage.getItem("notes_theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+  })();
+</script>
+</head>
+<body>
+  <div class="page-root">
+    <div class="workspace">
+
+      <!-- ===================== Sidebar ===================== -->
+      <div class="sidebar">
+        <div class="app-topbar">
+          <div class="brand">
+            <div class="brand-icon" id="brand-icon"></div>
+            <span class="brand-title">Paperz</span>
+          </div>
+          <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">
+            <span class="icon-row"><span></span><span></span></span>
+            <span class="knob" id="theme-knob"></span>
+          </button>
+        </div>
+
+        <div class="search-wrap">
+          <div class="search-bar">
+            <span id="search-icon"></span>
+            <input type="text" id="search-input" placeholder="Search notes" />
+          </div>
+        </div>
+
+        <div class="notes-scroll">
+          <div id="notes-list"></div>
+          <div id="empty-state" class="empty-state" style="display:none;">
+            <span id="empty-icon"></span>
+            <strong>No notes yet</strong>
+            <p>Tap + to write your first one.</p>
+          </div>
+        </div>
+
+        <button id="sidebar-new-note-btn" class="sidebar-new-btn desktop-only">
+          <span id="sidebar-new-icon"></span> New note
+        </button>
+
+        <div id="account-row" class="account-row">
+          <div class="avatar size-sm" data-role="identity"></div>
+          <div class="account-row-text">
+            <div class="account-row-name" id="sidebar-user-name"></div>
+            <div class="account-row-email" id="sidebar-user-email"></div>
+          </div>
+          <span id="account-chevron"></span>
+        </div>
+      </div>
+
+      <!-- ===================== Main panel (mobile: bottom sheet, desktop: docked editor) ===================== -->
+      <div id="editor-sheet" class="sheet editor-panel">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <button type="button" id="cancel-editor-btn" class="sheet-header-btn cancel">Cancel</button>
+          <strong id="editor-heading" style="font-family: var(--font-display); font-size: 0.95rem;">New note</strong>
+          <button type="submit" form="note-form" id="save-note-btn" class="sheet-header-btn save">Save</button>
+        </div>
+        <div class="sheet-body" style="flex:1; display:flex; flex-direction:column;">
+          <form id="note-form" style="display:flex; flex-direction:column; flex:1;">
+            <input type="text" id="note-title-input" class="sheet-title-input" placeholder="Title" required />
+            <textarea id="note-content-input" class="sheet-content-input" placeholder="Start typing..." style="flex:1;"></textarea>
+          </form>
+          <div id="editor-empty" class="editor-empty">
+            <span id="editor-empty-icon"></span>
+            <strong>Nothing selected</strong>
+            <p>Pick a note from the list, or start a new one.</p>
+          </div>
+        </div>
+      </div>
+
+      <button id="fab-new-note" class="fab mobile-only" title="New note"></button>
+    </div>
+
+    <!-- ===================== Shared backdrop ===================== -->
+    <div id="sheet-backdrop" class="sheet-backdrop"></div>
+
+    <!-- ===================== Delete note confirm ===================== -->
+    <div id="delete-sheet" class="sheet modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="action-sheet">
+        <div class="action-sheet-group">
+          <button type="button" id="confirm-delete-btn" class="action-sheet-btn destructive">Delete note</button>
+        </div>
+        <div class="action-sheet-group">
+          <button type="button" id="cancel-delete-btn" class="action-sheet-btn cancel-group">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== Account settings ===================== -->
+    <div id="settings-sheet" class="sheet modal-sheet settings-panel">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <button type="button" id="close-settings-btn" class="sheet-header-btn cancel">Close</button>
+        <strong style="font-family: var(--font-display); font-size: 0.95rem;">Account</strong>
+        <span style="width:50px;"></span>
+      </div>
+      <div class="sheet-body">
+
+        <div class="settings-section">
+          <div class="avatar-upload-row">
+            <div class="avatar size-lg" id="settings-avatar-preview"></div>
+            <div>
+              <button type="button" id="change-photo-btn" class="btn-secondary">
+                <span id="camera-icon"></span> Change photo
+              </button>
+              <input type="file" id="avatar-file-input" accept="image/*" style="display:none;" />
+            </div>
+          </div>
+
+          <form id="profile-form">
+            <div class="field-group">
+              <label class="field-label" for="settings-name-input">Name</label>
+              <input type="text" id="settings-name-input" class="field-input" required />
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="settings-email-input">Email</label>
+              <input type="email" id="settings-email-input" class="field-input" required />
+            </div>
+            <button type="submit" id="save-profile-btn" class="btn-primary" style="margin-top:0;">Save changes</button>
+          </form>
+        </div>
+
+        <div class="settings-section">
+          <p class="settings-section-title">Change password</p>
+          <form id="password-form">
+            <div class="field-group">
+              <label class="field-label" for="password-current">Current password</label>
+              <div class="field-input-wrap">
+                <input type="password" id="password-current" class="field-input" required />
+                <button type="button" id="toggle-current-password" class="password-toggle-btn"></button>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="password-new">New password</label>
+              <div class="field-input-wrap">
+                <input type="password" id="password-new" class="field-input" minlength="8" required />
+                <button type="button" id="toggle-new-password" class="password-toggle-btn"></button>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="password-confirm">Confirm new password</label>
+              <div class="field-input-wrap">
+                <input type="password" id="password-confirm" class="field-input" minlength="8" required />
+                <button type="button" id="toggle-confirm-password" class="password-toggle-btn"></button>
+              </div>
+            </div>
+            <button type="submit" id="change-password-btn" class="btn-primary" style="margin-top:0;">Update password</button>
+          </form>
+        </div>
+
+        <div class="settings-section">
+          <p class="settings-section-title">Danger zone</p>
+          <div class="danger-zone">
+            <p>Deleting your account permanently removes it and every note in it. This can't be undone.</p>
+            <button type="button" id="open-delete-account-btn" class="btn-danger-block">Delete my account</button>
+          </div>
+        </div>
+
+        <div class="settings-section" style="margin-bottom:6px;">
+          <button type="button" id="settings-logout-btn" class="btn-secondary" style="width:100%; justify-content:center;">
+            <span id="settings-logout-icon"></span> Log out
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===================== Delete account confirm ===================== -->
+    <div id="delete-account-sheet" class="sheet modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="action-sheet">
+        <p style="text-align:center; font-size:0.85rem; color:var(--text-muted); margin: 4px 8px 14px;">
+          Enter your password to permanently delete your account and all your notes.
+        </p>
+        <form id="delete-account-form">
+          <div class="field-group" style="padding: 0 8px;">
+            <input type="password" id="delete-account-password" class="field-input" placeholder="Password" required />
+          </div>
+          <div class="action-sheet-group" style="margin-top:14px;">
+            <button type="submit" id="confirm-delete-account-btn" class="action-sheet-btn destructive">Delete my account</button>
+          </div>
+        </form>
+        <div class="action-sheet-group">
+          <button type="button" id="cancel-delete-account-btn" class="action-sheet-btn cancel-group">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast-stack" class="toast-stack"></div>
+  </div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/ui-helpers.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/notes.js"></script>
+  <script>
+    // Fill in icons
+    document.getElementById("brand-icon").innerHTML = Icons.logo;
+    document.getElementById("search-icon").innerHTML = Icons.search;
+    document.getElementById("empty-icon").innerHTML = Icons.emptyNotebook;
+    document.getElementById("editor-empty-icon").innerHTML = Icons.emptyNotebook;
+    document.getElementById("fab-new-note").innerHTML = Icons.plus;
+    document.getElementById("sidebar-new-icon").innerHTML = Icons.plus;
+    document.getElementById("camera-icon").innerHTML = Icons.camera;
+    document.getElementById("settings-logout-icon").innerHTML = Icons.logout;
+    document.getElementById("account-chevron").innerHTML = Icons.chevronRight;
+    document.querySelector("#theme-toggle .icon-row").innerHTML = `<span>${Icons.sun}</span><span>${Icons.moon}</span>`;
+
+    function syncKnobIcon() {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      document.getElementById("theme-knob").innerHTML = isDark ? Icons.moon : Icons.sun;
+    }
+    syncKnobIcon();
+    document.getElementById("theme-toggle").addEventListener("click", () => setTimeout(syncKnobIcon, 0));
+    initThemeToggle();
+
+    initPasswordToggle("password-current", "toggle-current-password");
+    initPasswordToggle("password-new", "toggle-new-password");
+    initPasswordToggle("password-confirm", "toggle-confirm-password");
+
+    initDashboard();
+  </script>
+</body>
+</html>

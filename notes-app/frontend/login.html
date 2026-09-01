@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Log in - Paperz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<script>
+  (function () {
+    const saved = localStorage.getItem("notes_theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+  })();
+</script>
+</head>
+<body>
+  <div class="device-shell">
+    <div class="device">
+
+      <div class="app-topbar" style="justify-content:flex-end;">
+        <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">
+          <span class="icon-row"></span>
+          <span class="knob" id="theme-knob"></span>
+        </button>
+      </div>
+
+      <div class="auth-scroll">
+        <div class="auth-icon" id="auth-icon"></div>
+        <h1>Welcome back</h1>
+        <p class="sub">Log in to see your notes.</p>
+
+        <div id="banner-box" class="inline-error" style="background: rgba(52,199,89,0.12); color: var(--success);"></div>
+
+        <form id="login-form">
+          <div class="field-group">
+            <label class="field-label" for="email">Email</label>
+            <input type="email" id="email" class="field-input" required autocomplete="email" />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="password">Password</label>
+            <div class="field-input-wrap">
+              <input type="password" id="password" class="field-input" required autocomplete="current-password" />
+              <button type="button" id="toggle-password" class="password-toggle-btn"></button>
+            </div>
+            <div style="text-align:right; margin-top:8px;">
+              <a href="forgot-password.html" style="font-size:0.82rem; font-weight:600;">Forgot password?</a>
+            </div>
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn-primary">Log in</button>
+          <div id="error-box" class="inline-error"></div>
+        </form>
+
+        <p class="auth-footer">No account yet? <a href="register.html">Create one</a></p>
+      </div>
+
+      <div id="toast-stack" class="toast-stack"></div>
+    </div>
+  </div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/ui-helpers.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.getElementById("auth-icon").innerHTML = Icons.logo;
+    document.querySelector("#theme-toggle .icon-row").innerHTML = `<span>${Icons.sun}</span><span>${Icons.moon}</span>`;
+    function syncKnobIcon() {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      document.getElementById("theme-knob").innerHTML = isDark ? Icons.moon : Icons.sun;
+    }
+    syncKnobIcon();
+    document.getElementById("theme-toggle").addEventListener("click", () => setTimeout(syncKnobIcon, 0));
+    initThemeToggle();
+    initPasswordToggle("password", "toggle-password");
+    initLoginForm();
+
+    // Friendly confirmation banners after redirects from other flows.
+    const params = new URLSearchParams(window.location.search);
+    const banner = document.getElementById("banner-box");
+    if (params.get("reset") === "success") {
+      banner.innerHTML = `${Icons.check}<span>Your password has been updated. Log in with your new password.</span>`;
+      banner.classList.add("show");
+    } else if (params.get("deleted") === "success") {
+      banner.innerHTML = `${Icons.check}<span>Your account has been deleted. Thanks for trying Paperz.</span>`;
+      banner.classList.add("show");
+    }
+  </script>
+</body>
+</html>
