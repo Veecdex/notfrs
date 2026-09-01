@@ -1,5 +1,5 @@
 // Talks to the Go backend. Change this if your API runs somewhere else.
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = "https://noters-fkae.onrender.com";
 
 const Storage = {
   getToken: () => localStorage.getItem("notes_token"),
